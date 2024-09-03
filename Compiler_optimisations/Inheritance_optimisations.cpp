@@ -4,7 +4,6 @@
 
 #include "Inheritance_optimisations.h"
 
-
 int main() {
     Derived d;
     Derived* ptr = &d;
@@ -12,6 +11,7 @@ int main() {
     Derived2 d2;
     Derived2* ptr2 = &d2;
     std::cout << "Derived: " << ptr2 << " Base3: " << static_cast<Base3*>(ptr2) << " Base4: " << static_cast<Base4*>(ptr2) << '\n';
-
+    Derived3 d3;
+    d3.call();
     return 0;
 }
