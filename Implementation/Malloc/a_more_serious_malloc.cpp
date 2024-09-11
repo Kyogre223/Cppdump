@@ -68,9 +68,21 @@ struct Heap {
         // N IS ALREADY INCLUSIVE OF THE HEADER.
 
         // ============== first check through the free list ===========
-        // insert wtv algorithm u want here.
+        if (freeList) {
+            auto it = freeList;
+            // first fit
+            void* res = nullptr;
+            while (it ->cur_ < n) {
+                it = it->fd_ptr_;
+            };
+            if (it != nullptr) {
+                std::cout << "Used\n";
+                // here we can split it again also,
+                // invalidate the pointers
+                return (void*)it->fd_ptr_;
 
-        
+            }
+        }
         // ============== if free list has non available, request from the current Top ======
         std::cout << "Total size " << n + 16 << '\n';
         if (currentTop->cur_ - n >= 16 ) {
@@ -146,21 +158,6 @@ struct Heap {
 
     }
 
-};
-
-void* operator new (size_t n, Heap* ptr) {
-    return ptr->allocate(n);
-}
-
-struct MyDelete {
-    Heap* ptr_;
-    MyDelete(Heap* ptr): ptr_(ptr) {
-
-    }
-    template <typename T>
-    void operator () (T* ptr) {
-        ptr_->free(ptr);
-    }
 };
 
 
