@@ -1,0 +1,221 @@
+namespace kai {
+
+template <typename T>
+class vector {
+private:
+    int capacity_ = 0;
+    int size_ = 0;
+    T* data_ = nullptr;
+
+public:
+    // Default constructor
+    vector() = default;
+
+    // Destructor
+    ~vector() {
+        delete[] data_;
+    }
+
+    // Constructor with size
+    vector(std::size_t size, const T& default_value = T{}) {
+        reserve(std::max<int>(1, (int)size)); // at least 1
+        for (std::size_t i = 0; i < size; ++i) {
+            data_[i] = default_value;
+        }
+        size_ = (int)size;
+    }
+
+    // Copy constructor
+    vector(const vector& other) {
+        reserve(other.capacity_);
+        size_ = other.size_;
+        for (int i = 0; i < size_; ++i) {
+            data_[i] = other.data_[i];
+        }
+    }
+
+    // Copy assignment
+    vector& operator=(const vector& other) {
+        if (this == &other) return *this;
+        delete[] data_;
+        data_ = nullptr;
+        capacity_ = 0;
+        size_ = 0;
+
+        reserve(other.capacity_);
+        size_ = other.size_;
+        for (int i = 0; i < size_; ++i) {
+            data_[i] = other.data_[i];
+        }
+        return *this;
+    }
+
+    // Move constructor
+    vector(vector&& other) noexcept {
+        // Steal resources
+        data_ = other.data_;
+        size_ = other.size_;
+        capacity_ = other.capacity_;
+        // Nullify other's
+        other.data_ = nullptr;
+        other.size_ = 0;
+        other.capacity_ = 0;
+    }
+
+    // Move assignment
+    vector& operator=(vector&& other) noexcept {
+        if (this == &other) return *this;
+        // release current resources
+        delete[] data_;
+
+        // steal other's
+        data_ = other.data_;
+        size_ = other.size_;
+        capacity_ = other.capacity_;
+
+        other.data_ = nullptr;
+        other.size_ = 0;
+        other.capacity_ = 0;
+        return *this;
+    }
+
+    // capacity wise
+    std::size_t size() const {
+        return (std::size_t)size_;
+    }
+
+    int capacity() const {
+        return capacity_;
+    }
+
+    bool empty() const {
+        return size_ == 0;
+    }
+
+    // Reserve
+    void reserve(int new_capacity) {
+        if (new_capacity <= capacity_) return;
+
+        T* new_data = new T[new_capacity];
+        // copy existing
+        for (int i = 0; i < size_; ++i) {
+            new_data[i] = data_[i];
+        }
+        // free old
+        delete[] data_;
+        data_ = new_data;
+        capacity_ = new_capacity;
+    }
+
+    void shrink_to_fit() {
+        if (capacity_ > size_) {
+            reserve(size_);
+        }
+    }
+
+    // element access
+    T& operator[](int idx) {
+        return data_[idx];
+    }
+
+    const T& operator[](int idx) const {
+        return data_[idx];
+    }
+
+    T& at(int idx) {
+        if (idx < 0 || idx >= size_) throw std::out_of_range("index out of range");
+        return data_[idx];
+    }
+
+    const T& at(int idx) const {
+        if (idx < 0 || idx >= size_) throw std::out_of_range("index out of range");
+        return data_[idx];
+    }
+
+    T& front() {
+        return data_[0];
+    }
+
+    const T& front() const {
+        return data_[0];
+    }
+
+    T& back() {
+        return data_[size_ - 1];
+    }
+
+    const T& back() const {
+        return data_[size_ - 1];
+    }
+
+    // push_back
+    void push_back(const T& value) {
+        if (size_ == capacity_) {
+            reserve((capacity_ == 0) ? 1 : capacity_ * 2);
+        }
+        data_[size_++] = value;
+    }
+
+    // pop_back
+    void pop_back() {
+        if (size_ > 0) {
+            --size_;
+        }
+    }
+
+    // data
+    T* data() {
+        return data_;
+    }
+
+    const T* data() const {
+        return data_;
+    }
+    class iterator {
+    public:
+        using value_type = T;
+        using pointer = T*;
+        using reference = T&;
+        using difference_type = std::ptrdiff_t;
+        using iterator_category = std::random_access_iterator_tag;
+
+        iterator(pointer ptr) : ptr_{ptr} {}
+
+        reference operator*() const { return *ptr_; }
+        pointer operator->() const { return ptr_; }
+        
+        // increment/decrement
+        iterator& operator++() { ++ptr_; return *this; }
+        iterator operator++(int) { iterator tmp(*this); ++ptr_; return tmp; }
+        iterator& operator--() { --ptr_; return *this; }
+        iterator operator--(int) { iterator tmp(*this); --ptr_; return tmp; }
+
+        // random access
+        iterator& operator+=(difference_type n) { ptr_ += n; return *this; }
+        iterator operator+(difference_type n) const { iterator tmp(*this); return tmp += n; }
+        iterator& operator-=(difference_type n) { ptr_ -= n; return *this; }
+        iterator operator-(difference_type n) const { iterator tmp(*this); return tmp -= n; }
+        difference_type operator-(const iterator& other) const { return ptr_ - other.ptr_; }
+
+        bool operator==(const iterator& other) const { return ptr_ == other.ptr_; }
+        bool operator!=(const iterator& other) const { return ptr_ != other.ptr_; }
+        bool operator<(const iterator& other) const { return ptr_ < other.ptr_; }
+        bool operator>(const iterator& other) const { return ptr_ > other.ptr_; }
+        bool operator<=(const iterator& other) const { return ptr_ <= other.ptr_; }
+        bool operator>=(const iterator& other) const { return ptr_ >= other.ptr_; }
+
+    private:
+        pointer ptr_;
+    };
+
+    // begin/end
+    iterator begin() {
+        return iterator(data_);
+    }
+
+    iterator end() {
+        return iterator(data_ + size_);
+    }
+};
+
+} // namespace kai
